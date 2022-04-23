@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <title>Добавление на карту GeoJSON файла из Конструктора карт</title>
+    <meta charset="utf-8">
+
+    <style>
+        html, body, .map {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+
+    <script src="https://yastatic.net/jquery/2.2.3/jquery.min.js"></script>
+    <!--
+        Обратите внимание, что для добавления на карту geojson файла, эскпортированного из Конструктора карт,
+        необходимо при подключении API передать параметр coordorder со значением longlat.
+
+        Укажите свой API-ключ. Тестовый ключ НЕ БУДЕТ работать на других сайтах.
+        Получить ключ можно в Кабинете разработчика: https://developer.tech.yandex.ru/keys/
+    -->
+    <script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU&coordorder=longlat"></script>
+</head>
+<body>
+<div id="map" class="map"></div>
+<script>
+ymaps.ready(function () {
+
+var map = new ymaps.Map('map', {
+        center: [38.13474655151367, 56.30696750781204],
+        zoom: 13,
+        controls: ['zoomControl']
+    }),
+    objectManager = new ymaps.ObjectManager();
+map.controls.get('zoomControl').options.set({size: 'small'});
+// Загружаем GeoJSON файл, экспортированный из Конструктора карт.
+$.getJSON('geojson.json')
+    .done(function (geoJson) {
+
+        geoJson.features.forEach(function (feature) {
+          feature.options = {
+            color: feature.properties.fill,
+                stroke: feature.properties.fill,
+                fillOpacity: feature.properties.fillOpacity,            
+          };
+            // Задаём контент балуна.
+            // obj.properties.balloonContent = obj.properties.description;
+            // // Задаём пресет для меток с полем iconCaption.
+            // if (obj.properties.iconCaption) {
+            //     obj.options = {
+            //         preset: "islands#greenDotIconWithCaption"
+            //     }
+            // }
+
+        });
+        // Добавляем описание объектов в формате JSON в менеджер объектов.
+        objectManager.add(geoJson);
+        // Добавляем объекты на карту.
+        map.geoObjects.add(objectManager);
+    });
+});
+
+</script>
+</body>
+</html>

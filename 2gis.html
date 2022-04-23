@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SPMAP - 2GIS</title>
+  <script src="https://maps.api.2gis.ru/2.0/loader.js"></script>
+  <style>
+    html, body, #map {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    #map {
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <script>
+    DG.then(function() {
+      var map = DG.map('map', {
+        center: [56.30696750781204, 38.13474655151367],
+        zoom: 13
+      });
+      var promise = DG.ajax('geojson.json', {
+        type: 'get',
+        success: function(data) {
+          DG.geoJson(data, {
+            style: function (feature) {
+              return {
+                color: feature.properties.fill,
+                stroke: feature.properties.fill,
+                fillOpacity: feature.properties.fillOpacity,
+                opacity: feature.properties.fillOpacity,
+                strokeWidth: feature.properties.strokeWidth,
+                zIndex: feature.properties.zIndex,
+                // weight: feature.properties.strokeWidth,
+              };
+            },
+            pointToLayer: function (e, t) {
+              return "radius" in e.properties ? DG.circle(t, e.properties.radius) : DG.marker(t, {
+                icon: function (e) {
+                  return DG.divIcon({
+                    html: "<div class='bullet-marker' style='border-color: " + e + ";'></div>",
+                    className: "override-default",
+                    iconSize: [20, 20],
+                    iconAnchor: [10, 10]
+                  })
+                }(e.properties.color)
+              })
+            },
+            onEachFeature: function (feature, layer) {
+              // if (feature.geometry.type == 'Point') {
+              //   console.log('Circle: ', feature.geometry.coordinates, feature.properties.radius);
+              //   DG.circle(feature.geometry.coordinates, 100).addTo(map);
+              // }
+              if (feature.properties.description)
+                layer.bindPopup(feature.properties.description);
+            },
+            filter: function (feature) {
+              if (feature.geometry.type == 'Point') {
+                console.log('Circle: ', feature);
+                // DG.circle(feature.geometry.coordinates, 100).addTo(map);
+                // return false;
+              }
+              return true;
+            },
+          }).addTo(map);
+        },
+        error: function() {
+          alert('Что-то пошло не так');
+        },
+      });
+    });
+  </script>
+</body>
+</html>

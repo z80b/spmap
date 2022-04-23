@@ -12,11 +12,18 @@ export const getPolygon = (data, id) => {
     properties: {
       description: unescape(data.description),
       fill: data.color,
-      'fill-opacity': 0.6,
+      fillOpacity: 0.6,
       srtoke: data.color,
-      'stroke-width': '3',
-      'stroke-opacity': 0.9,
+      strokeWidth: 1,
+      strokeOpacity: 0.9,
+      zIndex: 0,
     },
+    style: {
+      'fill-color': data.color,
+      'fill-opacity': 0.6,
+    },
+    hintContent: unescape(data.description),
+    fillColor: data.color,
   };
 };
 
@@ -36,6 +43,29 @@ export const getLineString = (data, id) => {
       srtoke: data.color,
       'stroke-width': '3',
       'stroke-opacity': 0.9,
+      zIndex: 1,
     },
   };  
+};
+
+export const getCircle = (data, id) => {
+  return {
+    type: 'Feature',
+    id,
+    geometry: {
+      type: 'Point',
+      kind: 'c',
+      coordinates: [ data.lng, data.lat, 'c' ],
+    },
+    properties: {
+      radius: data.radius,
+      description: unescape(data.description),
+      fill: data.color,
+      'fill-opacity': 0.6,
+      srtoke: data.color,
+      'stroke-width': '3',
+      'stroke-opacity': 0.9,
+      zIndex: 2,
+    },    
+  };
 };
