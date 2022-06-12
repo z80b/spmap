@@ -1,4 +1,4 @@
-import { createRequire } from 'module'
+import { createRequire } from 'module';
 import { getPolygon, getLineString, getCircle } from './geometry.js';
 import { storeData } from './utils.js';
 
