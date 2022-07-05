@@ -1,0 +1,10 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  size: 100%;
+}
+
+.app {
+  color: #444;
+  font-family: Helvetica, sans-serif;
+}
