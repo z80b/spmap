@@ -1,6 +1,7 @@
 <template>
   <x-map
-    :center="[56.30696750781204, 38.13474655151367]"
+    v-if="geoJson"
+    :center="[38.13474655151367, 56.30696750781204]"
     :zoom="15"
     :geo-json="geoJson"
   />
@@ -16,11 +17,12 @@ export default {
   },
   data() {
     return {
-      geoJson: {},
+      geoJson: null,
     };
   },
   async mounted() {
     this.geoJson = await getGeoJson();
+    console.log('getGeoJson', this.geoJson)
   },
 };
 </script>

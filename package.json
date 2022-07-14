@@ -55,9 +55,7 @@
     "rollup-plugin-visualizer": "^5.5.2",
     "rollup-plugin-vue": "^5.1.9",
     "unplugin-vue2-script-setup": "^0.7.3",
-    "vue-template-compiler": "^2.6.14",
-    "vue-yandex-maps": "^0.12.3",
-    "ymaps": "^0.2.1"
+    "vue-template-compiler": "^2.6.14"
   },
   "lint-staged": {
     "*.{js,json,vue},!dist/*.js": [
