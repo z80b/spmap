@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <title>Добавление на карту GeoJSON файла из Конструктора карт</title>
-    <meta charset="utf-8">
-
+    <title>SPMap</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta charset="utf-8"/>
     <style>
         html, body, .map {
             width: 100%;
@@ -12,82 +12,11 @@
             padding: 0;
         }
     </style>
-
-    <script src="https://yastatic.net/jquery/2.2.3/jquery.min.js"></script>
-    <!--
-        Обратите внимание, что для добавления на карту geojson файла, эскпортированного из Конструктора карт,
-        необходимо при подключении API передать параметр coordorder со значением longlat.
-
-        Укажите свой API-ключ. Тестовый ключ НЕ БУДЕТ работать на других сайтах.
-        Получить ключ можно в Кабинете разработчика: https://developer.tech.yandex.ru/keys/
-    -->
+    <link rel="stylesheet" href="spmap.css"/>
     <script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU&coordorder=longlat"></script>
 </head>
 <body>
-<div id="map" class="map"></div>
-<script>
-ymaps.ready(function () {
-
-  var map = new ymaps.Map('map', {
-    MapType: 'SATELLITE',
-    center: [38.13474655151367, 56.30696750781204],
-    zoom: 15,
-    controls: ['zoomControl']
-  });
-
-  map.setType('yandex#satellite');
-  objectManager = new ymaps.ObjectManager({
-    options: {
-      zIndex: 9,
-    },    
-  });
-  map.controls.get('zoomControl').options.set({size: 'small'});
-  // Загружаем GeoJSON файл, экспортированный из Конструктора карт.
-  $.getJSON('geojson.json')
-    .done(function (geoJson) {
-      // const polygonsCollection = new ymaps.GeoObjectCollection({
-      //   options: {
-      //     zIndex: 9,
-      //   },
-      // });
-      const circlesCollection = new ymaps.GeoObjectCollection({
-        options: {
-          zIndex: 10,
-        },
-      });
-      geoJson.features = geoJson.features
-        .map(function (feature) {
-          if (feature.geometry && ['LineString', 'Polygon'].includes(feature.geometry.type)) return {
-            ...feature,
-            options: {
-              color: feature.properties.fill,
-              stroke: feature.properties.fill,
-              fillOpacity: feature.properties.fillOpacity,     
-              fillColor: feature.properties.fill,
-              strokeWidth: 3,
-              zIndex: 9,
-            },
-          };
-          if (feature.geometry && feature.geometry.type == 'Point') {
-            const circle = new ymaps.Circle([feature.geometry.coordinates, 10], {
-              hintContent: feature.properties.description,
-            }, {
-              fillColor: feature.properties.fill,
-              strokeColor: feature.properties.fill,
-              strokeOpacity: feature.properties.fillOpacity,
-              strokeWidth: 3,
-            });
-            circlesCollection.add(circle);
-          }
-      })
-      .filter( function(feature) { return feature; });
-    // Добавляем описание объектов в формате JSON в менеджер объектов.
-    objectManager.add(geoJson);
-    // Добавляем объекты на карту.
-    map.geoObjects.add(objectManager).add(circlesCollection);
-  });
-});
-
-</script>
+  <div id="content" class="map"></div>
+  <script src="spmap.js"></script>
 </body>
 </html>

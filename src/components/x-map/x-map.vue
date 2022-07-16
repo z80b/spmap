@@ -1,10 +1,5 @@
 <template>
   <div :class="$style.root">
-    <div :class="$style.controls">
-      <button @click="drawPolyline">Path</button>
-      <button @click="drawPolygon">Polygon</button>
-      <button @click="drawCircle">Circle</button>
-    </div>
     <div
       ref="container"
       :class="$style.map"></div>
@@ -94,46 +89,46 @@ export default {
         .add(objectManager)
         .add(circlesCollection);
     },
-    drawPolyline() {
-       const polyline = new ymaps.Polyline([], {}, {
-        editorDrawingCursor: "crosshair",
-        fillColor: '#00FF00',
-        strokeColor: '#0000FF',
-        strokeWidth: 5,
-      });
+    // drawPolyline() {
+    //    const polyline = new ymaps.Polyline([], {}, {
+    //     editorDrawingCursor: "crosshair",
+    //     fillColor: '#00FF00',
+    //     strokeColor: '#0000FF',
+    //     strokeWidth: 5,
+    //   });
 
-      this.map.geoObjects.add(polyline);
-      polyline.editor.startDrawing();     
-    },
-    drawPolygon() {
-      const polygon = new ymaps.Polygon([], {}, {
-        editorDrawingCursor: "crosshair",
-        fillColor: '#00FF00',
-        strokeColor: '#0000FF',
-        strokeWidth: 5,
-      });
+    //   this.map.geoObjects.add(polyline);
+    //   polyline.editor.startDrawing();     
+    // },
+    // drawPolygon() {
+    //   const polygon = new ymaps.Polygon([], {}, {
+    //     editorDrawingCursor: "crosshair",
+    //     fillColor: '#00FF00',
+    //     strokeColor: '#0000FF',
+    //     strokeWidth: 5,
+    //   });
 
-      polygon.editor.events.add('drawingstop', event => {
-        console.log(event, polygon.editor.getModel());
-      });
+    //   polygon.editor.events.add('drawingstop', event => {
+    //     console.log(event, polygon.editor.getModel());
+    //   });
 
-      this.map.geoObjects.add(polygon);
-      polygon.editor.startDrawing();
-    },
-    drawCircle() {
-      const cicrcle = new ymaps.Circle([], {}, {
-        editorDrawingCursor: "crosshair",
-        fillColor: '#FF0000',
-        strokeColor: '#0000FF',
-        strokeWidth: 5,
-      });
+    //   this.map.geoObjects.add(polygon);
+    //   polygon.editor.startDrawing();
+    // },
+    // drawCircle() {
+    //   const cicrcle = new ymaps.Circle([], {}, {
+    //     editorDrawingCursor: "crosshair",
+    //     fillColor: '#FF0000',
+    //     strokeColor: '#0000FF',
+    //     strokeWidth: 5,
+    //   });
 
-      this.map.geoObjects.add(cicrcle);
-      cicrcle.editor.startDrawing();      
-    },
-    editingStop() {
-      alert('Oh, event !');
-    },
+    //   this.map.geoObjects.add(cicrcle);
+    //   cicrcle.editor.startDrawing();      
+    // },
+    // editingStop() {
+    //   alert('Oh, event !');
+    // },
   },
 };
 </script>

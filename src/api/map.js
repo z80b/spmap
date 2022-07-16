@@ -1,26 +1,30 @@
 export const prepareFeatures = (features) => features
   .map(function (feature) {
-    if (feature.geometry && ['LineString', 'Polygon'].includes(feature.geometry.type)) return {
+    if (feature.geometry && feature.geometry.type === 'LineString') return {
       ...feature,
       options: {
-        color: feature.properties.fill,
-        stroke: feature.properties.fill,
+        strokeColor: feature.properties.fill,
         fillOpacity: feature.properties.fillOpacity,     
         fillColor: feature.properties.fill,
         strokeWidth: 3,
-        zIndex: 9,
+        zIndex: 7,
+      },
+      properties: {
+        hintContent: feature.properties.description,
       },
     };
-    if (feature.geometry && feature.geometry.type == 'Point') {
-      const circle = new ymaps.Circle([feature.geometry.coordinates, 10], {
-        hintContent: feature.properties.description,
-      }, {
-        fillColor: feature.properties.fill,
+    if (feature.geometry && feature.geometry.type === 'Polygon') return {
+      ...feature,
+      options: {
         strokeColor: feature.properties.fill,
-        strokeOpacity: feature.properties.fillOpacity,
-        strokeWidth: 3,
-      });
-      // circlesCollection.add(circle);
-    }
+        fillOpacity: feature.properties.fillOpacity,     
+        fillColor: feature.properties.fill,
+        strokeWidth: 2,
+        zIndex: 8,
+      },
+      properties: {
+        hintContent: feature.properties.description,
+      },
+    };
   })
   .filter( function(feature) { return feature; });
