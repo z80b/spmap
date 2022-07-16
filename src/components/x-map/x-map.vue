@@ -56,7 +56,9 @@ export default {
         lang: this.lang,
         coordorder: 'longlat',
       });
+
       this.map.setType('yandex#satellite');
+      this.map.geoObjects.events.add('editingstop', this.editingStop);
 
       const circlesCollection = new ymaps.GeoObjectCollection({
         options: {
@@ -111,8 +113,8 @@ export default {
         strokeWidth: 5,
       });
 
-      polygon.events.add('editingstop',() => {
-        console.log('polygon.getModel()');
+      polygon.editor.events.add('drawingstop', event => {
+        console.log(event, polygon.editor.getModel());
       });
 
       this.map.geoObjects.add(polygon);
@@ -128,6 +130,9 @@ export default {
 
       this.map.geoObjects.add(cicrcle);
       cicrcle.editor.startDrawing();      
+    },
+    editingStop() {
+      alert('Oh, event !');
     },
   },
 };

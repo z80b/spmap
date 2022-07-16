@@ -9,7 +9,7 @@
 
 <script>
 import { getGeoJson } from '@/api/requests.js';
-import XMap from '@/components/x-map/x-map.vue';
+import XMap from '@/components/x-map/x-map-editor.vue';
 
 export default {
   components: {
