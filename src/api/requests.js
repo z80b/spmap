@@ -6,6 +6,6 @@ const apiClient = axios.create({
   },
 });
 
-export const getGeoJson = () => apiClient.get('geojson.json')
+export const getGeoJson = () => apiClient.get('/spmap/geojson.json')
   .then(response => response.data)
   .catch(error => Promise.reject({}));
