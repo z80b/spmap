@@ -3,17 +3,17 @@
     <div :class="$style.controls">
       <x-button
         @click.native="drawFeature('Polyline')"
-        icon="/public/icons/polyline-pt-svgrepo-com.svg"
+        icon="polyline-pt-svgrepo-com.svg"
         :class="$style.button"
       />
       <x-button
         @click.native="drawFeature('Polygon')"
-        icon="/public/icons/polygon-pt-svgrepo-com.svg"
+        icon="polygon-pt-svgrepo-com.svg"
         :class="$style.button"
       />
       <x-button
         @click.native="drawFeature('Point')"
-        icon="/public/icons/point-svgrepo-com.svg"
+        icon="point-svgrepo-com.svg"
         :class="$style.button"
       />
       <select v-model="filter">

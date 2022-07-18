@@ -1,18 +1,23 @@
 <template>
   <button :class="$style.root">
     <slot>
-      <img :src="icon" :class="$style.icon"/>
+      <img :src="cdn(icon)" :class="$style.icon"/>
     </slot>
   </button>
 </template>
 
 <script>
+import { cdn } from '@/api/requests.js';
+
 export default {
   props: {
     icon: {
       type: String,
       default: '',
     },
+  },
+  methods: {
+    cdn,
   },
 }
 </script>
