@@ -1,9 +1,21 @@
 <template>
   <div :class="$style.root">
     <div :class="$style.controls">
-      <button @click="drawFeature">Path</button>
-      <button @click="drawFeature('Polygon')">Polygon</button>
-      <button @click="drawFeature">Circle</button>
+      <x-button
+        @click.native="drawFeature('Polyline')"
+        icon="/public/icons/polyline-pt-svgrepo-com.svg"
+        :class="$style.button"
+      />
+      <x-button
+        @click.native="drawFeature('Polygon')"
+        icon="/public/icons/polygon-pt-svgrepo-com.svg"
+        :class="$style.button"
+      />
+      <x-button
+        @click.native="drawFeature('Point')"
+        icon="/public/icons/point-svgrepo-com.svg"
+        :class="$style.button"
+      />
       <select v-model="filter">
         <option value="all">All</option>
         <option value="LineString">Paths</option>
@@ -31,10 +43,12 @@
 
 <script>
 import XMapFeature from '@/components/x-map/x-map-feature.vue';
+import XButton from '@/components/x-button.vue';
 
 export default {
   components: {
     XMapFeature,
+    XButton,
   },
   props: {
     center: {
@@ -66,6 +80,7 @@ export default {
       fillColor: '#00ff00',
       strokeColor: '#0000ff',
       strokeWidth: 3,
+      radius: 10,
       filter: 'all',
     };
   },
@@ -120,6 +135,12 @@ export default {
       if (type === 'Polygon') {
         feature.object = new ymaps.Polygon([], {}, { ...style, editorDrawingCursor: "crosshair" });
       }
+      if (type === 'Polyline') {
+        feature.object = new ymaps.Polyline([], {}, { ...style, editorDrawingCursor: "crosshair" });
+      }
+      if (type === 'Point') {
+        feature.object = new ymaps.Circle([,this.radius], {}, { ...style, editorDrawingCursor: "crosshair" });
+      }
       this.map.geoObjects.add(feature.object);
       this.newFeatures.push(feature);
       
@@ -155,8 +176,16 @@ export default {
   }
 
   .controls {
-    position: absolute 0 * * 0;
-    size: 100% 50px;
+    display: flex;
+    position: absolute 10px * * 0;
+    box-sizing: border-box;
+    size: 100% 26px;
+    padding: 0 10px;
     z-index: 2;
+  }
+
+  .button {
+    display: block;
+    margin-right: 5px;
   }
 </style>
