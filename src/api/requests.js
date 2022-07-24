@@ -3,7 +3,7 @@ import axios from 'axios';
 const pathParts = document.location.pathname.split('/');
 
 const apiClient = axios.create({
-  baseURL: pathParts.length > 2 ? `/${pathParts[1]}` : '/',
+  baseURL: '/api',// pathParts.length > 2 ? `/${pathParts[1]}` : '/',
   headers: {
     'Content-Type': 'application/json',
     

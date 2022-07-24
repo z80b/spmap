@@ -1,2 +1,14 @@
-.vscode
-node_modules
+/*
+!/.docker
+/.docker/db
+!/src
+!/.*
+.DS_Store
+!/*.json
+!/*.js
+!/*.yaml
+!/*.php
+!/Makefile
+!/sites/all/libraries
+!/sites/all/modules/spmap
+

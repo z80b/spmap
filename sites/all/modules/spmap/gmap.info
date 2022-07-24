@@ -1,0 +1,11 @@
+; $Id: gmap.info,v 1.0b 2011/12/02 13:15:11 Stitch Exp $
+name = Google maps v3
+description = 
+package = Google maps v3
+version = VERSION
+core = 6.x
+
+; Information added by drupal.org packaging script on 2011-05-25
+version = "6.22"
+project = "spmap"
+datestamp = "1306357015"

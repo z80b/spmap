@@ -1,0 +1,516 @@
+<?php //$Id: gmap.module,v 1.0b 2012/03/22 21:03:00 Stitch Exp $
+
+function gmap_menu() {
+    return array (
+        'home' => array (
+            'title' => 'Content',
+            'page callback' => 'gmap_node_page_default',
+            'access arguments' => array('access content'),
+            'type' => MENU_CALLBACK,
+        ),
+        'ymaps' => array (
+          'title' => 'Content',
+          'page callback' => 'yandex_map_page_default',
+          'access arguments' => array('access content'),
+          'type' => MENU_CALLBACK,
+        ),
+        'gmapupload/js' => array (
+            'page callback' => 'gmapupload_js',
+            'access arguments' => array('upload files'),
+            'type' => MENU_CALLBACK,  
+        ),
+        'gmapdownload/%' => array (
+            'page callback' => 'gmap_download',
+            'page arguments' => array(1),
+            'access arguments' => array('upload files'),
+            'type' => MENU_CALLBACK,  
+        ),
+        'gmapdelete/%' => array (
+            'page callback' => 'gmap_delete_file',
+            'page arguments' => array(1),
+            'access arguments' => array('upload files'),
+            'type' => MENU_CALLBACK, 
+        ),
+        'phpinfo' => array (
+            'page callback' => 'phpinfo',
+            'access arguments' => array('edit content'),
+            'type' => MENU_CALLBACK, 
+
+        ),
+        'test' => array (
+            'page callback' => 'gmap_test',
+            'access arguments' => array('edit content'),
+            'type' => MENU_CALLBACK,      
+        ),
+        'api/geojson.json' => array (
+            'page callback' => 'get_geo_json',
+            'access arguments' => array('access content'),
+            'type' => MENU_CALLBACK,
+        ),
+    );
+}
+
+function gmap_test() {
+    die('<pre>'.print_r($_POST, true).'</pre>');
+}
+
+function gmap_delete_file($fid) {
+    db_query('UPDATE {files} SET `status`=-1 WHERE `fid`=%d', $fid);
+    exit;
+}
+
+function gmap_download($fid) {
+    $file = db_fetch_object(db_query('SELECT * FROM {files} WHERE `fid`=%d', $fid));
+    if ($file->filepath && file_exists($file->filepath)) {
+        $headers = array(
+            'Content-Type: octet/stream',
+            'Content-Disposition: attachment; filename="". $file->filename. ""',
+            'Content-Length: '.filesize($file->filepath),
+        );
+        file_transfer($file->filepath, $headers);
+    }
+}
+
+function gmap_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
+    switch ($node->type) {
+        case 'map':
+            switch ($op) {
+                case 'prepare':
+                    //die();
+                    
+                    $data = db_result(db_query('SELECT `body` FROM {node_revisions} WHERE `nid`=%d', $node->nid));
+                    $elements = unserialize($data);
+
+                    if (isset($_POST['map_data'])) {
+                        
+                        $_elements = array();
+                        $new_elements = explode('|', $_POST['map_data']);
+                        if (!count($elements)) break;
+                        
+                        foreach ($new_elements as $id => $element) {
+                            $params = explode('&', $element);
+                            foreach($params as $param) {
+                                $param_parts = explode('=', $param);
+                                $_elements['new'.'_'.$id][$param_parts[0]] = urldecode($param_parts[1]);
+                            }
+                        }
+                        $elements = array_merge($elements, $_elements);
+                    }
+                    
+                    drupal_add_css(drupal_get_path('module', 'gmap') . '/gmap.css');
+                    drupal_add_css('sites/all/libs/colorpicker/colorpicker.css');
+                    drupal_add_js('sites/all/libs/colorpicker/colorpicker.js');
+                    drupal_add_js(drupal_get_path('module', 'gmap') . '/gmap.js', 'module', 'header', false, false);
+                    
+                    if (count($elements)) {
+                        $elements_js = 'var map_overlays='.drupal_to_js($elements).';';
+                        drupal_add_js($elements_js, 'inline');
+                    }
+                    
+                    break;
+                case 'update':
+                case 'insert':
+                    if (!isset($_POST['map_data'])) return;
+                    $_elements = array();
+                    $elements = explode('|', $_POST['map_data']);
+
+                    if (!count($elements)) return;
+                    
+                    foreach ($elements as $id => $element) {
+                        $params = explode('&', $element);
+                        foreach($params as $param) {
+                            $param_parts = explode('=', $param);
+                            if (count($param_parts) == 2) {
+                                $_elements[$node->nid.'_'.$id][$param_parts[0]] = urldecode($param_parts[1]);
+                            }
+                        }
+                    }
+                    $data = serialize($_elements);
+                    
+                    db_query("UPDATE {node_revisions} SET `body`='%s',`format`=2 WHERE `nid`=%d", $data, $node->nid);
+                    
+                    $rs = db_query("SELECT * FROM {files} WHERE `status` < 0");
+                    while ($file = db_fetch_object($rs)) {
+                        if (file_exists($file->filepath)) {
+                            chmod($file->filepath, 0755);
+                            unlink($file->filepath);
+                        }
+                        if (!file_exists($file->filepath)) {
+                            db_query("DELETE FROM {files} WHERE `fid`=%d", $file->fid);
+                            db_query("DELETE FROM {upload} WHERE `fid`=%d", $file->fid);
+                        }
+                    }
+                    
+                    break;
+                case 'view':
+                    $data = db_result(db_query("SELECT `body` FROM {node_revisions} WHERE `nid`=%d", $node->nid));
+                    $elements = unserialize($data);
+                    $elements_js = 'var map_overlays='.drupal_to_js($elements).';';
+
+                    drupal_add_css(drupal_get_path('module', 'gmap') . '/gmap.css');
+                    drupal_add_js(drupal_get_path('module', 'gmap') . '/gmap-view.js', 'module', 'header', false, false);
+                    drupal_add_js($elements_js, 'inline');
+                    
+                    $node->content['body']['#value'] = '<div id="map-cont"><div id="sp-home-map"></div></div>';
+                    break;
+                case 'delete':
+                    //----
+                    $rs = db_query("SELECT * FROM {upload} JOIN {files} ON {upload}.`fid`={files}.`fid` WHERE {upload}.`nid`=%d", $node->nid);
+                    while ($file = db_fetch_object($rs)) {
+                        if (file_exists($file->filepath)) {
+                            chmod($file->filepath, 0755);
+                            unlink($file->filepath);
+                        }
+                        if (!file_exists($file->filepath)) {
+                            db_query("DELETE FROM {files} WHERE `fid`=%d", $file->fid);
+                            db_query("DELETE FROM {upload} WHERE `fid`=%d", $file->fid);
+                        }
+                    }
+                    break;
+            }
+            break;
+    }
+}
+
+function gmap_upload_form($params = NULL) {
+    if (!module_exists('upload')) return;
+    
+    drupal_add_js(drupal_get_path('module', 'gmap') . '/gmap-upload.js', 'module', 'header', false, false);
+    
+    global $user;
+    $limits = _upload_file_limits($user);
+    
+    $form = array (
+        '#type' => 'fieldset',
+        'wrapper' => array (
+            '#value' => '<div id="overlay-attach-wrapper" class="clear-block"></div>',
+        ),
+        'upload' => array(
+            '#title' => 'Upload file',
+            '#weight' => 1,
+            '#type' => 'file',
+            '#size' => 40,
+            '#description' => ($limits['resolution'] ? t('Images are larger than %resolution will be resized. ', array('%resolution' => $limits['resolution'])) : '') . t('The maximum upload size is %filesize. Only files with the following extensions may be uploaded: %extensions. ', array('%extensions' => $limits['extensions'], '%filesize' => format_size($limits['file_size']))),
+        ),
+        'attath' => array(
+            '#type' => 'submit',
+            '#weight' => 2,
+            '#value' => t('Attach'),
+            '#name' => 'attach',
+            '#ahah' => array (
+                'path' => 'gmapupload/js',
+                'wrapper' => 'overlay-attach-wrapper',
+                'progress' => array('type' => 'bar', 'message' => t('Please wait...')),
+            ),
+            //'#submit' => array('gmap_upload_form_submit'),
+      
+        ),
+    );
+    
+    $wrapper = array (
+        '#type' => 'fieldset',
+        '#attributes' => array (
+            'id' => 'overlay-attach-wrapper',
+        ),
+    );
+    if (isset($params)) {
+        return array_merge($params, $form);
+    } else return $form;
+}
+
+function gmapupload_js() {
+    global $user;
+
+    $limits = _upload_file_limits($user);
+    $validators = array(
+      'file_validate_extensions' => array($limits['extensions']),
+      'file_validate_image_resolution' => array($limits['resolution']),
+      'file_validate_size' => array($limits['file_size'], $limits['user_size']),
+    );
+
+  // Save new file uploads.
+    $form = gmap_upload_form();
+    if (user_access('upload files') && ($file = file_save_upload('upload', $validators, file_directory_path()))) {
+        
+        if (file_exists($file->filepath)) {
+            chmod($file->filepath, 0755);
+        }
+        
+        $output = sprintf('<div class="messages status">Файл %s загружен.</div>', $file->filename);
+        $output.= sprintf(
+            '<table><tr><th>%s</th><th></th></tr><tr><td>%s<td><td>%s</td></tr/></table>',
+            t('File name'), $file->filename, ''
+        );
+        print drupal_to_js(array('status' => TRUE, 'data' => $output, 'files' => drupal_to_js($file)));
+    } else {
+        $output = '<div class="messages error">Файл не удалось загрузить.</div>';
+        print drupal_to_js(array('status' => FALSE, 'data' => $output));
+    }
+    //$output.= '<script type='text/javascript'>alert(2);</script>';
+    
+    exit;
+}
+
+function gmap_form_alter(&$form, &$form_state, $form_id) {
+    switch ($form_id) {
+        case 'page_node_form':
+            //die('<pre>'.print_r($form, true).'</pre>');
+            
+            break;
+        case 'map_node_form':
+            //die('<pre>'.print_r($form, true).'</pre>');
+            
+            $attachments = $form['attachments'];
+            
+            
+            $form['body_field'] = array (
+                'body' => array (
+                    '#type' => 'hidden',
+                ),
+            );
+            unset($form['buttons']['preview'], $form['attachments']);
+            $form['spmap_fieldset'] = array (
+                '#type' => 'fieldset',
+                '#title' => 'Google map',
+                'spmap_body' => array (
+                    '#value' => '<div id="spmap"></div>',
+                    '#suffix' => '<div class="map-controls"></div>',
+                ),
+                'controls-fieldset' => array (
+                    '#type' => 'fieldset',
+                    '#attributes' => array (
+                        'class' => 'controls-fieldset',
+                    ),
+                    'del-button' => array (
+                        '#prefix' => '<table><tr><td>',
+                        '#suffix' => '</td>',
+                        '#id' => 'delete-overlay-button',
+                        '#type' => 'button',
+                        '#value' => 'Удалить',
+                    ),
+                    'width-select' => array (
+                        '#id'     => 'stroke-weight-select',
+                        '#prefix' => '<td>',
+                        '#type'    => 'select',
+                        '#title'   => 'Ширина линии',
+                        '#options' => array (
+                            1 => '1',
+                            2 => '2',
+                            3 => '3',
+                            4 => '4',
+                            5 => '5',
+                            6 => '6',
+                            7 => '7',
+                        ),
+                    ),
+                    'radius-select' => array (
+                        '#id'     => 'radius-select',
+                        '#suffix' => '</td>',
+                        '#type'    => 'select',
+                        '#title'   => 'Радиус',
+                        '#options' => array (
+                            1 => '1',
+                            3 => '2',
+                            10 => '3',
+                            20 => '4',
+                            30 => '5',
+                            40 => '6',
+                            50 => '7',
+                        ),   
+                    ),
+                    'overlay_title' => array (
+                        '#prefix' => '<td rowspan="2" style="vertical-align: top">',
+                        '#id' => 'overlay-title',
+                        '#type' => 'textfield',
+                        '#title' => 'Название',
+                    ),
+                    'overlay_description' => array (
+                        '#id'     => 'overlay-description',
+                        '#type'   => 'textarea',
+                        '#title'  => 'Описание',
+                        '#rows'   => '9',
+                    ),
+                    'overlay_description_add' => array (
+                        '#id' => 'overlay-description-save',
+                        '#type'  => 'button',
+                        '#value' => 'Добавить описание',
+                        '#suffix' => '</td>',
+                    ),
+                    'color-value' => array (
+                        '#prefix' => '</tr><tr><td colspan="2">',
+                        '#id' => 'stroke-color-select',
+                        '#type' => 'textfield',
+                        '#title' => 'Цвет',
+                    ),
+                    'no-color' => array (
+                        '#id' => 'reset-color',
+                        '#type' => 'button',
+                        '#value' => 'Убрать заливку',
+                    ),
+                    'color-picker' => array (
+                        '#suffix' => '</td></tr></table>',
+                        '#value' => '<div id="color-picker"></div>',
+                    ),
+                    'attachments' => gmap_upload_form(array (
+                        '#prefix' => '<table><tr><td colspan="2">',
+                        '#suffix' => '</td></tr></table>',
+                    )),
+//                    'color-select' => array (
+//                        '#id' => 'stroke-color-select',
+//                        '#prefix' => '<td>',
+//                        '#suffix' => '</td></tr></table>',
+//                        '#type' => 'select',
+//                        '#title' => 'Цвет',
+//                        '#options' => array (
+//                            '#FF0000' => 'Красный',
+//                            '#00FF00' => 'Зеленый',
+//                            '#0000FF' => 'Синий',
+//                        ),
+//                    ),
+                ),
+            );
+            //$form['controls-fieldset']['overlay_attachments']['overlay_wrapper'] = _upload_form($node);
+            break;
+    }
+}
+
+function gmap_theme() {
+    return array (
+        'gmap_home_page' => array (
+            'template' => 'gmap-home-page',
+        ),
+        'yandex_map_page' => array(
+          'template' => 'yandex-map-page',
+        ),
+    );
+}
+
+function template_preprocess_gmap_home_page(&$vars) {
+    /*$rs = db_query('
+        SELECT `nm`.`data` FROM {node} AS `nn`
+        JOIN {node_map_overlays} AS `nm` ON `nm`.`nid`=`nn`.`nid`
+        WHERE `nn`.`promote` AND `nn`.`status` AND `nn`.`type`='map'
+    ');*/
+    //$rs = db_query('SELECT `body` FROM {node_map_overlays} WHERE ');
+    $rs = db_query("
+        SELECT `nr`.`body` FROM {node} AS `nn`
+        JOIN {node_revisions} AS `nr` ON `nr`.`nid`=`nn`.`nid`
+        WHERE `nn`.`promote` AND `nn`.`status` AND `nn`.`type`='map'
+    ");
+    $elements = array();
+    
+    while ($data = db_result($rs)) {
+        $_elements = unserialize($data);
+        $elements = array_merge($elements, $_elements);
+    }
+    
+    $elements_js = 'var map_overlays='.drupal_to_js($elements).';';
+    
+    drupal_add_css(drupal_get_path('module', 'gmap') . '/gmap.css');
+    drupal_add_js(drupal_get_path('module', 'gmap') . '/gmap-view.js');
+    drupal_add_js(utf8_decode($elements_js), 'inline');
+    $vars['styles']  = drupal_get_css();
+    $vars['scripts'] = drupal_get_js();
+    $vars['head_title'] = drupal_get_title();
+}
+
+function template_preprocess_yandex_map_page(&$vars) {
+  drupal_add_css(drupal_get_path('module', 'gmap') . '/static/spmap.css');
+  drupal_add_js(drupal_get_path('module', 'gmap') . '/static/spmap.js');
+  drupal_add_js(utf8_decode($elements_js), 'inline');
+  $vars['styles']  = drupal_get_css();
+  $vars['scripts'] = drupal_get_js();
+  $vars['head_title'] = drupal_get_title();  
+}
+
+function gmap_node_page_default() {
+    die(theme('gmap_home_page'));
+}
+
+function yandex_map_page_default() {
+  die(theme('yandex_map_page'));
+  // $geojson_data = file_get_contents('./geojson.json');
+  // $geojson = json_decode($geojson_data, true);
+
+  // foreach ($geojson['features'] as $index => $f) {
+  //   $g = $f['geometry'];
+  //   $p = $f['properties'];
+
+  //   print($f['type'] . ' - ' . $g['type'] . '\n' );
+
+  //   db_query('INSERT INTO map_features(
+  //     `nid`,
+  //     `type`,
+  //     `coordinates`,
+  //     `description`,
+  //     `fill`,
+  //     `fill-opacity`,
+  //     `stroke`,
+  //     `stroke-width`,
+  //     `stroke-opacity`,
+  //     `z-index`) VALUES(
+  //       %d, '%s', '%s', '%s', '%s', %f, '%s', %d, %f, %d
+  //     );', 806, $g['type'], serialize($g['coordinates']), $p['description'], $p['fill'], $p['fill-opacity'], $p['stroke'], $p['stroke-width'], $p['stroke-opacity'], $p['zIndex']);
+  // }
+}
+
+function decodePath( $string ) {
+    $points = array();
+    $index = $i = 0;
+    $previous = array(0,0);
+    while ($i < strlen($string)) {
+        $shift = $result = 0x00;
+        do {
+            $bit = ord(substr($string, $i++)) - 63;
+            $result |= ($bit & 0x1f) << $shift;
+            $shift += 5;
+        } while ($bit >= 0x20);
+
+        $diff = ($result & 1) ? ~($result >> 1) : ($result >> 1);
+        $number = $previous[$index % 2] + $diff;
+        $previous[$index % 2] = $number;
+        $index++;
+        $points[] = $number * 1 / pow(10, 5);
+    }
+    return $points;
+}
+
+function normalizeDescription($str) {
+  $result = preg_replace('/[\'\"]/', '`', $str);
+  return preg_replace('/(\\x3c|\\x3e)/', ' ', $result);
+}
+
+function get_geo_json() {
+  $rs = db_query("SELECT `mf`.* FROM {map_features} AS `mf`");
+
+  $result = array(
+    'type' => 'FeatureCollection',
+    'features' => array (),
+  );
+
+  $index = 0;
+
+  while ($item = db_fetch_array($rs)) {
+    $feature = array (
+      'type' => 'Feature',
+      'id' => intval($item['id']),
+      'geometry' => array (
+        'type' => $item['type'],
+        'coordinates' => unserialize($item['coordinates']),
+      ),
+      'properties' => array (
+        'description' => normalizeDescription($item['description']),
+        'fill' => $item['fill'],
+        'fill-opacity' => floatval($item['fill-opacity']),
+        'srtoke' => isset($item['srtoke']) ? $item['srtoke'] : $item['fill'],
+        'stroke-width' => intval($item['stroke-width']),
+        'stroke-opacity' => floatval($item['stroke-opacity']),
+        'zIndex' => intval($item['z-index']),
+      ),
+    );
+    array_push($result['features'], $feature);
+  }
+
+  drupal_set_header('Content-Type: application/json');
+  echo drupal_to_js($result);
+}

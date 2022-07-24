@@ -1,0 +1,28 @@
+html,body { width: 100%; height: 100%; padding: 0; margin: 0 }
+
+#spmap, .node #sp-home-map { width: 95%; height: 600px; display: block; position: relative }
+.controls-fieldset { padding: 0; width: 95% }
+.controls-fieldset table { width: auto; margin: 0 }
+.controls-fieldset table tbody { border: none }
+.controls-fieldset table .form-item { padding: 0; margin: 0 }
+.controls-fieldset table label { display: inline }
+
+#stroke-color-select { width: 64px; margin-left: 6px; display: inline }
+#stroke-color-select-wrapper, #reset-color { float: left }
+#reset-color { padding: 3px; margin: 0 10px }
+#map-cont { position: relative; display: block }
+#color-picker { clear: both; float: none; padding: 10px 0 0 }
+#tooltip { position: absolute; border: solid 1px #8FB0CF; background: gold }
+
+#spmap-controls { margin: 5px; z-index: 10; position: absolute; top: 0px; height: 26px; width: 54px }
+#spmap-controls .map-button {
+    width: 24px; height: 24px; display: block; float: left;
+    background: #FFF no-repeat 50% 50%; border: solid 1px #717B87;
+    -webkit-box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px;
+    box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px;
+}
+#spmap-controls .map-button:hover { background-color: #EEE }
+#spmap-controls .delete-button { background-image: url(imgs/del-icon.png) }
+#spmap-controls .edit-button { background-image: url(imgs/edit-icon.png) }
+#spmap-controls .rule-button { background-image: url(imgs/rule-icon.png) }
+#spmap-controls .rule-button.active { background-color: #DDD }
