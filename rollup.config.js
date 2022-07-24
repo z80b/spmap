@@ -18,7 +18,7 @@ const port = 3000;
 export default {
   input: 'src/main.js',
   output: {
-    dir: './',
+    dir: './sites/all/modules/spmap/static',
     entryFileNames: 'spmap.js',
     format: 'iife',
     sourcemap: !production ? 'inline' : false,

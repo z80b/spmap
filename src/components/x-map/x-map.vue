@@ -34,9 +34,7 @@ export default {
   },
   data() {
     return {
-      ready: false,
       map: null,
-      geoObject: {},
     };
   },
   mounted() {
@@ -81,54 +79,15 @@ export default {
         },    
       });
 
-      this.geoObject = { ...this.geoJson, features: prepareFeatures(this.geoJson.features) };
-
-      objectManager.add(this.geoObject);
+      objectManager.add({
+        type: 'FeatureCollection',
+        features: prepareFeatures(this.geoJson.features),
+      });
 
       this.map.geoObjects
         .add(objectManager)
         .add(circlesCollection);
     },
-    // drawPolyline() {
-    //    const polyline = new ymaps.Polyline([], {}, {
-    //     editorDrawingCursor: "crosshair",
-    //     fillColor: '#00FF00',
-    //     strokeColor: '#0000FF',
-    //     strokeWidth: 5,
-    //   });
-
-    //   this.map.geoObjects.add(polyline);
-    //   polyline.editor.startDrawing();     
-    // },
-    // drawPolygon() {
-    //   const polygon = new ymaps.Polygon([], {}, {
-    //     editorDrawingCursor: "crosshair",
-    //     fillColor: '#00FF00',
-    //     strokeColor: '#0000FF',
-    //     strokeWidth: 5,
-    //   });
-
-    //   polygon.editor.events.add('drawingstop', event => {
-    //     console.log(event, polygon.editor.getModel());
-    //   });
-
-    //   this.map.geoObjects.add(polygon);
-    //   polygon.editor.startDrawing();
-    // },
-    // drawCircle() {
-    //   const cicrcle = new ymaps.Circle([], {}, {
-    //     editorDrawingCursor: "crosshair",
-    //     fillColor: '#FF0000',
-    //     strokeColor: '#0000FF',
-    //     strokeWidth: 5,
-    //   });
-
-    //   this.map.geoObjects.add(cicrcle);
-    //   cicrcle.editor.startDrawing();      
-    // },
-    // editingStop() {
-    //   alert('Oh, event !');
-    // },
   },
 };
 </script>
