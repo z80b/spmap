@@ -14,6 +14,12 @@ function gmap_menu() {
           'access arguments' => array('access content'),
           'type' => MENU_CALLBACK,
         ),
+        'ymaps/editor' => array (
+          'title' => 'Content',
+          'page callback' => 'yandex_map_page_editor',
+          'access arguments' => array('access content'),
+          'type' => MENU_CALLBACK,
+        ),
         'gmapupload/js' => array (
             'page callback' => 'gmapupload_js',
             'access arguments' => array('upload files'),
@@ -382,6 +388,9 @@ function gmap_theme() {
         'yandex_map_page' => array(
           'template' => 'yandex-map-page',
         ),
+        'yandex_map_editor' => array(
+          'template' => 'yandex-map-editor',
+        ),
     );
 }
 
@@ -412,15 +421,6 @@ function template_preprocess_gmap_home_page(&$vars) {
     $vars['styles']  = drupal_get_css();
     $vars['scripts'] = drupal_get_js();
     $vars['head_title'] = drupal_get_title();
-}
-
-function template_preprocess_yandex_map_page(&$vars) {
-  drupal_add_css(drupal_get_path('module', 'gmap') . '/static/spmap.css');
-  drupal_add_js(drupal_get_path('module', 'gmap') . '/static/spmap.js');
-  drupal_add_js(utf8_decode($elements_js), 'inline');
-  $vars['styles']  = drupal_get_css();
-  $vars['scripts'] = drupal_get_js();
-  $vars['head_title'] = drupal_get_title();  
 }
 
 function gmap_node_page_default() {
@@ -454,6 +454,10 @@ function yandex_map_page_default() {
   // }
 }
 
+function yandex_map_page_editor() {
+  die(theme('yandex_map_editor'));
+}
+
 function decodePath( $string ) {
     $points = array();
     $index = $i = 0;
@@ -475,13 +479,8 @@ function decodePath( $string ) {
     return $points;
 }
 
-function normalizeDescription($str) {
-  $result = preg_replace('/[\'\"]/', '`', $str);
-  return preg_replace('/(\\x3c|\\x3e)/', ' ', $result);
-}
-
 function get_geo_json() {
-  $rs = db_query("SELECT `mf`.* FROM {map_features} AS `mf`");
+  $rs = db_query("SELECT `mf`.* FROM {map_features} AS `mf` LIMIT 1000, 500");
 
   $result = array(
     'type' => 'FeatureCollection',
@@ -491,26 +490,27 @@ function get_geo_json() {
   $index = 0;
 
   while ($item = db_fetch_array($rs)) {
-    $feature = array (
+    array_push($result['features'], array (
       'type' => 'Feature',
       'id' => intval($item['id']),
       'geometry' => array (
         'type' => $item['type'],
         'coordinates' => unserialize($item['coordinates']),
       ),
-      'properties' => array (
-        'description' => normalizeDescription($item['description']),
-        'fill' => $item['fill'],
-        'fill-opacity' => floatval($item['fill-opacity']),
-        'srtoke' => isset($item['srtoke']) ? $item['srtoke'] : $item['fill'],
-        'stroke-width' => intval($item['stroke-width']),
-        'stroke-opacity' => floatval($item['stroke-opacity']),
+      'options' => array (
+        'strokeColor' => isset($item['srtoke']) ? $item['srtoke'] : $item['fill'],
+        'fillOpacity' => floatval($item['fill-opacity']),
+        'fillColor' => $item['fill'],
+        'strokeOpacity' => floatval($item['stroke-opacity']),
+        'strokeWidth' => intval($item['stroke-width']),
         'zIndex' => intval($item['z-index']),
       ),
-    );
-    array_push($result['features'], $feature);
+      'properties' => array (
+        'hintContent' => $item['description'],
+      ),
+    ));
   }
 
   drupal_set_header('Content-Type: application/json');
-  echo drupal_to_js($result);
+  echo json_encode($result);
 }

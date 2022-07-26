@@ -14,63 +14,77 @@ import scriptSetup from 'unplugin-vue2-script-setup/rollup';
 
 const production = !process.env.ROLLUP_WATCH;
 const port = 3000;
+const plugins = [
+  json(),
+  alias({
+    entries: [{ find: '@', replacement: __dirname + '/src/' }],
+  }),
+  image(),
+  postcss({
+    extract: 'spmap.css',
+    config: { path: 'postcss.config.js' },
+  }),
+  requireContext(),
+  nodeResolve({
+    jsnext: true,
+    main: true,
+    browser: true,
+  }),
+  commonjs(),
+  scriptSetup(),
+  vue({
+    css: false,
+    needMap: false,
+    template: {
+      compilerOptions: {
+        isCustomElement: (tag) => tag.includes('-'),
+      },
+    },
+    style: {
+      postcssModulesOptions: {
+        generateScopedName: '[name]-[hash:base64:4]',
+      },
+    },
+  }),
+  replace({
+    'process.env.NODE_ENV': production ? '"production"' : '"development"',
+    preventAssignment: true,
+  }),
+  esbuild({
+    minify: production,
+    target: 'es2015',
+  }),
+  !production &&
+    visualizer({
+      open: false,
+    }),
+  production && filesize(),
+];
 
-export default {
-  input: 'src/main.js',
+export default [{
+  input: 'src/map-viewer.js',
   output: {
     dir: './sites/all/modules/spmap/static',
-    entryFileNames: 'spmap.js',
+    entryFileNames: 'spmap-viewer.js',
     format: 'iife',
     sourcemap: !production ? 'inline' : false,
     name: 'app',
   },
-  plugins: [
-    json(),
-    alias({
-      entries: [{ find: '@', replacement: __dirname + '/src/' }],
-    }),
-    image(),
-    postcss({
-      extract: 'spmap.css',
-      config: { path: 'postcss.config.js' },
-    }),
-    requireContext(),
-    nodeResolve({
-      jsnext: true,
-      main: true,
-      browser: true,
-    }),
-    commonjs(),
-    scriptSetup(),
-    vue({
-      css: false,
-      needMap: false,
-      template: {
-        compilerOptions: {
-          isCustomElement: (tag) => tag.includes('-'),
-        },
-      },
-      style: {
-        postcssModulesOptions: {
-          generateScopedName: '[name]-[hash:base64:4]',
-        },
-      },
-    }),
-    replace({
-      'process.env.NODE_ENV': production ? '"production"' : '"development"',
-      preventAssignment: true,
-    }),
-    esbuild({
-      minify: production,
-      target: 'es2015',
-    }),
-    !production &&
-      visualizer({
-        open: false,
-      }),
-    production && filesize(),
-  ],
+  plugins,
   watch: {
     clearScreen: true,
   },
-}
+}, {
+  input: 'src/map-editor.js',
+  output: {
+    dir: './sites/all/modules/spmap/static',
+    entryFileNames: 'spmap-editor.js',
+    format: 'iife',
+    sourcemap: !production ? 'inline' : false,
+    name: 'app',
+  },
+  plugins,
+  watch: {
+    clearScreen: true,
+  },
+}]

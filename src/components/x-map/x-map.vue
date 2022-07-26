@@ -79,14 +79,23 @@ export default {
         },    
       });
 
+      circlesCollection.events.add('click', this.mapClick);
+      objectManager.events.add('click', () => { console.log('clickFeature') });
+
       objectManager.add({
         type: 'FeatureCollection',
-        features: prepareFeatures(this.geoJson.features),
+        features: this.geoJson.features.filter(feature => feature.geometry.type !== 'Point'),
       });
+
+
 
       this.map.geoObjects
         .add(objectManager)
         .add(circlesCollection);
+    },
+    mapClick(event) {
+      const target = event.get('target');
+      target.editor.startEditing();
     },
   },
 };

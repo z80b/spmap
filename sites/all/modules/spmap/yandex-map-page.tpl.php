@@ -17,6 +17,6 @@
   </head>
   <body>
     <div id="content" class="map"></div>
-    <script src="<?php print drupal_get_path('module', 'gmap') . '/static/spmap.js' ?>"></script>
+    <script src="<?php print drupal_get_path('module', 'gmap') . '/static/spmap-viewer.js' ?>"></script>
   </body>
 </html>

@@ -160,6 +160,26 @@ export default {
     updateFeature(coordinates, index) {
       console.log('updateFeature', coordinates, index);
     },
+    mapClick(event) {
+      const objectId = event.get('objectId');
+      const object = this.objectManager.objects.getById(objectId);
+        // this.circlesCollection.getById(objectId);
+      console.log(object, objectId);
+      // this.map.geoObjects.remove([objectId]);
+      // this.objectManager.remove([objectId]);
+      // const newObject = new ymaps.GeoObject({
+      //   id: object.id,
+      //   geometry : object.geometry,
+      //   properties: object.properties
+      // }, object.options);
+      // this.map.geoObjects.add(newObject);
+      // newObject.editor.startEditing();
+    },
+
+    mapClick2(event) {
+      const target = event.get('target');
+      target.editor.startEditing();
+    },
   },
 }
 </script>
