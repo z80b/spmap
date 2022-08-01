@@ -17,7 +17,10 @@ const port = 3000;
 const plugins = [
   json(),
   alias({
-    entries: [{ find: '@', replacement: __dirname + '/src/' }],
+    entries: [
+      { find: '@', replacement: __dirname + '/src/' },
+      { find: 'vue', replacement: 'vue/dist/vue.esm' },
+    ],
   }),
   image(),
   postcss({

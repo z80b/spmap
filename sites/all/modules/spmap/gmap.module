@@ -49,10 +49,15 @@ function gmap_menu() {
             'type' => MENU_CALLBACK,      
         ),
         'api/geojson.json' => array (
-            'page callback' => 'get_geo_json',
-            'access arguments' => array('access content'),
-            'type' => MENU_CALLBACK,
+          'page callback' => 'get_geo_json',
+          'access arguments' => array('access content'),
+          'type' => MENU_CALLBACK,
         ),
+        'api/save' => array (
+          'page callback' => 'save_geo_json',
+          'access arguments' => array('access content'),
+          'type' => MENU_CALLBACK,
+      ),
     );
 }
 
@@ -480,7 +485,7 @@ function decodePath( $string ) {
 }
 
 function get_geo_json() {
-  $rs = db_query("SELECT `mf`.* FROM {map_features} AS `mf` LIMIT 1000, 500");
+  $rs = db_query("SELECT `mf`.* FROM {map_features} AS `mf` LIMIT 6100, 1000");
 
   $result = array(
     'type' => 'FeatureCollection',
@@ -513,4 +518,58 @@ function get_geo_json() {
 
   drupal_set_header('Content-Type: application/json');
   echo json_encode($result);
+}
+
+function save_geo_json() {
+  $features = json_decode(file_get_contents("php://input"));
+  
+  foreach($features as $feature) {
+    switch ($feature->status) {
+      case 'deleted':
+        db_query("DELETE FROM {map_features} WHERE `id`=%d", $feature->id);
+        break;
+      case 'updated':
+        db_query("
+          UPDATE {map_features} SET
+            `coordinates`='%s',
+            `description`='%s',
+            `fill`='%s',
+            `fill-opacity`=%f,
+            `stroke`='%s',
+            `stroke-width`=%d,
+            `stroke-opacity`=%f
+          WHERE `id`=%d
+        ",
+          serialize($feature->geometry->coordinates),
+          $feature->properties->hintContent,
+          $feature->options->fillColor,
+          $feature->options->fillOpacity,
+          $feature->options->strokeColor,
+          $feature->options->strokeWidth,
+          $feature->options->strokeOpacity,
+          $feature->id
+        );
+        break;
+      case 'new':
+        db_query("INSERT INTO {map_features}(`nid`,`type`,`coordinates`,`description`,`fill`,`fill-opacity`,`stroke`,`stroke-width`,`stroke-opacity`,`z-index`) VALUES(%d, '%s', '%s', '%s', '%s', %f, '%s', %d, %f, %d)",
+            555,
+            $feature->geometry->type,
+            serialize($feature->geometry->coordinates),
+            $feature->properties->hintContent,
+            $feature->properties->fillColor,
+            $feature->properties->fillOpacity,
+            $feature->properties->strokeColor,
+            $feature->properties->strokeWidth,
+            $feature->properties->strokeOpacity,
+            1 // $feature->options->zIndex
+        );
+        break;
+    }
+  }
+
+  drupal_set_header('Content-Type: application/json');
+  echo json_encode(array (
+    'status' => 'ok',
+    'features' => $features,
+  ));
 }

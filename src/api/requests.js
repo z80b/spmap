@@ -10,7 +10,19 @@ const apiClient = axios.create({
   },
 });
 
+const apiPostsClient = axios.create({
+  baseURL: '/api',// pathParts.length > 2 ? `/${pathParts[1]}` : '/',
+  headers: {
+    'Content-Type': 'application/x-www-form-urlencoded',
+    
+  },
+});
+
 export const getGeoJson = () => apiClient.get('geojson.json')
+  .then(response => response.data)
+  .catch(error => Promise.reject({}));
+
+export const saveFeatures = (features) => apiPostsClient.post('save', features)
   .then(response => response.data)
   .catch(error => Promise.reject({}));
 

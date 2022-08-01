@@ -7,8 +7,6 @@
 </template>
 
 <script>
-import { prepareFeatures } from '@/api/map.js';
-
 export default {
   props: {
     center: {

@@ -1,5 +1,8 @@
 <template>
-  <button :class="$style.root">
+  <button :class="{
+    [$style.root]: true,
+    [$style.withIcon]: icon,
+  }">
     <slot>
       <img :src="cdn(icon)" :class="$style.icon"/>
     </slot>
@@ -24,9 +27,14 @@ export default {
 
 <style module>
   .root {
-    padding: 1px;
-    size: 26px;
+    padding: 1px 10px;
+    height: 26px;
     cursor: pointer;
+  }
+
+  .withIcon {
+    padding: 1px;
+    width: 26px;
   }
 
   .icon {
