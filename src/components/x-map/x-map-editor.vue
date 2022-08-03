@@ -17,6 +17,19 @@
         :class="$style.button"
       />
       <x-button
+        :class="$style.button"
+        :classes="{ root: $style.colorButton }"
+        @click.native="isColorModalOpen = true"
+      >
+        <div
+          :class="$style.colorIcon"
+          :style="{
+            backgroundColor: fillColor,
+            borderColor: strokeColor,
+          }"
+        ></div>
+      </x-button>
+      <x-button
         :disabled="!currentObject"
         :class="$style.button"
         @click.native="remove"
@@ -28,12 +41,23 @@
       >Сохранить</x-button>
     </div>
     <div ref="container" :class="$style.map"></div>
-    <PortalTarget name="modals"/>
+    <PortalTarget name="dataForm"/>
+    <PortalTarget name="colorsForm"/>
     <div v-if="isOverlayVisible" :class="$style.overlay"></div>
-    <x-modal :is-open="isModalOpen">
-      <template #header>!!!!</template>
-      <h1>Preved !!!</h1>
-    </x-modal>
+    <x-modal-feature-params
+      :is-open="isModalOpen"
+      :geo-object="currentObject"
+      @close="isModalOpen = false"
+      @change="updateFeature"
+    />
+    <x-modal-colors
+      :is-open="isColorModalOpen"
+      :fill-color="fillColor"
+      :stroke-color="strokeColor"
+      @close="isColorModalOpen = false"
+      @input-fill-color="color => fillColor = color"
+      @input-stroke-color="color => strokeColor = color"
+    />
   </div>  
 </template>
 
@@ -41,7 +65,10 @@
 import Vue from 'vue';
 import XMapFeature from '@/components/x-map/x-map-feature.vue';
 import XModal from '@/components/x-modal.vue'
+import XModalColors from '@/components/x-modal-colors.vue';
+import XModalFeatureParams from '@/components/x-modal-feature-params.vue';
 import XButton from '@/components/x-button.vue';
+import VSwatches from 'vue-swatches';
 import { saveFeatures } from '@/api/requests';
 import { EventBus } from '@/components/event-bus.js';
 
@@ -49,7 +76,10 @@ export default {
   components: {
     XMapFeature,
     XModal,
+    XModalColors,
+    XModalFeatureParams,
     XButton,
+    VSwatches,
   },
   props: {
     center: {
@@ -77,6 +107,7 @@ export default {
     return {
       isOverlayVisible: false,
       isModalOpen: false,
+      isColorModalOpen: false,
 
       map: null,
       objectManager: null,
@@ -87,8 +118,8 @@ export default {
       currentObject: null,
       currentFeature: null,
 
-      fillColor: '#00ff00',
-      strokeColor: '#0000ff',
+      fillColor: '#2ECC70',
+      strokeColor: '#27AF60',
       strokeWidth: 3,
       radius: 10,
       filter: 'all',
@@ -235,9 +266,20 @@ export default {
         this.features.push(feature);
       }
     },
-    openModal() {
-      console.log('openModal');
+    openModal(feature, object) {
+      this.currentObject = object;
+      this.currentFeature = feature;
       this.isModalOpen = true;
+    },
+    closeColorsModal() {
+      EventBus.$emit('hide-overlay');
+      this.isColorModalOpen = false;
+    },
+    updateFeature(feature) {
+      this.saveFeature(feature, 'updated');
+      EventBus.$emit('hide-overlay');
+      this.isColorModalOpen = false;
+      this.currentObject = null;
     },
   },
 }
@@ -265,7 +307,8 @@ export default {
 
   .overlay {
     position: absolute 0;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: #b9b69180;
+    backdrop-filter: blur(5px);
     z-index: 10;
   }
 
@@ -277,5 +320,17 @@ export default {
   .saveButton {
     display: block;
     margin-left: 16px;
+  }
+
+  .colorButton {
+    padding: 3px;
+  }
+
+  .colorIcon {
+    size: 16px;
+    border-radius: 50%;
+    border: solid 1px;
+    box-sizing: border-box;
+    padding: 5px;
   }
 </style>

@@ -25,3 +25,11 @@ export default {
   },
 };
 </script>
+
+<style module>
+:root {
+  --titleColor: #000;
+
+  --titleFont: 700 24px/30px Arial;
+}
+</style>

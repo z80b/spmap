@@ -503,7 +503,7 @@ function get_geo_json() {
         'coordinates' => unserialize($item['coordinates']),
       ),
       'options' => array (
-        'strokeColor' => isset($item['srtoke']) ? $item['srtoke'] : $item['fill'],
+        'strokeColor' => isset($item['stroke']) ? $item['stroke'] : $item['fill'],
         'fillOpacity' => floatval($item['fill-opacity']),
         'fillColor' => $item['fill'],
         'strokeOpacity' => floatval($item['stroke-opacity']),

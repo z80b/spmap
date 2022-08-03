@@ -1,6 +1,10 @@
 <template>
-  <Portal to="modals">
+  <Portal :to="name">
     <div v-show="isModalOpen" :class="$style.root">
+      <div
+        :class="$style.close"
+        @click="closeModal"
+      ></div>
       <div v-if="isHeader" :class="$style.head">
         <slot name="header">Title</slot>
       </div>
@@ -19,6 +23,10 @@ import { EventBus } from '@/components/event-bus.js';
 
 export default {
   props: {
+    name: {
+      type: String,
+      default: '',
+    },
     isOpen: {
       type: Boolean,
       default: false,
@@ -38,9 +46,17 @@ export default {
     },
   },
   watch: {
-    isOpen() {
-      EventBus.$emit('show-overlay');
-      this.isModalOpen = true;
+    isOpen(value) {
+      if (value) {
+        EventBus.$emit('show-overlay');
+      }
+      this.isModalOpen = value;
+    },
+  },
+  methods: {
+    closeModal() {
+      EventBus.$emit('hide-overlay');
+      this.$emit('close');
     },
   },
 }
@@ -53,6 +69,19 @@ export default {
     background-color: #fff;
     border-radius: 5px;
     z-index: 11;
+    box-shadow: 4px 4px 15px 0px #000;
+  }
+
+  .close {
+    position: absolute -4px -30px * *;
+    size: 24px;
+    background-image: url('/sites/all/modules/spmap/static/imgs/cross.svg');
+    transition: ease 0.5s opacity;
+    cursor: pointer;
+  }
+
+  .close:hover {
+    opacity: 0.6;
   }
 
   .head {

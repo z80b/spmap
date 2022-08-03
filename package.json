@@ -16,6 +16,7 @@
     "vue": "^2.6.14",
     "vue-i18n": "8.26.5",
     "vue-router": "3.5.3",
+    "vue-swatches": "^2.1.1",
     "vuex": "^3.6.2"
   },
   "peerDependencies": {
@@ -36,6 +37,7 @@
     "lint-staged": "11.2.6",
     "portal-vue": "^2.1.7",
     "postcss": "^8.4.7",
+    "postcss-css-variables": "^0.18.0",
     "postcss-extend": "^1.0.5",
     "postcss-import": "^14.0.2",
     "postcss-modules": "^4.3.1",

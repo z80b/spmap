@@ -1,0 +1,26 @@
+.body {
+  width: 480px;
+}
+
+.body :global .vue-swatches__wrapper {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.title {
+  color: var(--titleColor);
+  font: var(--titleFont);
+  margin: 0;
+}
+
+.capture {
+  color: var(--titleColor);
+  font: var(--subTitleFont);
+  margin: 0 0 16px;
+}
+
+.description {
+  resize: none;
+  height: 10em;
+  width: 100%;
+}
