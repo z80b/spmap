@@ -485,7 +485,7 @@ function decodePath( $string ) {
 }
 
 function get_geo_json() {
-  $rs = db_query("SELECT `mf`.* FROM {map_features} AS `mf` LIMIT 6100, 1000");
+  $rs = db_query("SELECT `mf`.* FROM {map_features} AS `mf` LIMIT 6500, 1000");
 
   $result = array(
     'type' => 'FeatureCollection',
@@ -556,11 +556,11 @@ function save_geo_json() {
             $feature->geometry->type,
             serialize($feature->geometry->coordinates),
             $feature->properties->hintContent,
-            $feature->properties->fillColor,
-            $feature->properties->fillOpacity,
-            $feature->properties->strokeColor,
-            $feature->properties->strokeWidth,
-            $feature->properties->strokeOpacity,
+            $feature->options->fillColor,
+            $feature->options->fillOpacity,
+            $feature->options->strokeColor,
+            $feature->options->strokeWidth,
+            $feature->options->strokeOpacity,
             1 // $feature->options->zIndex
         );
         break;

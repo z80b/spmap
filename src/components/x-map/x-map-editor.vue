@@ -209,9 +209,10 @@ export default {
         strokeOpacity: 0.9,
         editorDrawingCursor: 'crosshair',
       };
+      const id = `new-${this.features.length}`;
       const geoData = {
         type: 'Feature',
-        id: `new-${this.features.length}`,
+        id,
         geometry: {
           type,
         },
@@ -228,7 +229,19 @@ export default {
       this.map.geoObjects.add(feature);
       feature.editor.events.add('drawingstop', event => this.onStopEditing(event, feature, geoData));
       feature.events.add('click', event => this.onFeatureClick(feature, geoData));
-      feature.events.add('contextmenu', event => this.openModal(feature, geoData));
+      feature.events.add('contextmenu', event => this.openModal(feature, {
+        type: 'Feature',
+        id,
+        geometry: {
+          coordinates: feature.geometry.getCoordinates(),
+          type,
+        },
+        properties: {
+          hintContent: '',
+        },
+        options: style,
+        status: 'new',
+      }));
       feature.editor.startDrawing();
     },
     onFeatureClick(object, feature) {
@@ -265,6 +278,7 @@ export default {
       } else {
         this.features.push(feature);
       }
+      console.log('saveFeature', this.features);
     },
     openModal(feature, object) {
       this.currentObject = object;
@@ -276,7 +290,19 @@ export default {
       this.isColorModalOpen = false;
     },
     updateFeature(feature) {
-      this.saveFeature(feature, 'updated');
+      console.log(feature);
+      this.currentFeature.options.set('fillColor', feature.options.fillColor);
+      this.currentFeature.options.set('strokeColor', feature.options.strokeColor);
+      try {
+        this.currentFeature.properties.set('hintContent', feature.options.hintContent || feature.properties.hintContent);
+      } catch (e) {
+        console.log(e);
+      }
+      if (feature.status === 'new') {
+        this.saveFeature(feature, 'new');  
+      } else {
+        this.saveFeature(feature, 'updated');
+      }
       EventBus.$emit('hide-overlay');
       this.isColorModalOpen = false;
       this.currentObject = null;

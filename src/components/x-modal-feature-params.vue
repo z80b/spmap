@@ -10,10 +10,11 @@
     </template>
     <div :class="$style.body">
       <h2 :class="$style.capture">Описание</h2>
-      <textarea
+      <vue-editor
         v-model="currHintContent"
+        :editor-toolbar="$options.editor"
         :class="$style.description"
-      ></textarea>
+      ></vue-editor>
       <h2 :class="$style.capture">Фон</h2>
       <v-swatches
         v-model="currFillColor"
@@ -39,16 +40,23 @@
 </template>
 
 <script>
+import Vue from 'vue';
 import XModal from '@/components/x-modal.vue'
 import XButton from '@/components/x-button.vue';
 import VSwatches from 'vue-swatches';
-import { EventBus } from '@/components/event-bus.js';
+import { VueEditor } from "vue2-editor";
+
 
 export default {
+  editor: [
+    ["bold", "italic", "underline"],
+    [{ list: "ordered" }, { list: "bullet" }],
+  ],
   components: {
     XModal,
     XButton,
     VSwatches,
+    VueEditor,
   },
   props: {
     isOpen: {
@@ -113,16 +121,25 @@ export default {
   },
   methods: {
     save() {
-      this.result = {
-        ...this.geoObject,
-        properties: {  ...this.geoObject.properties, ...this.result.properties },
-        options: { ...this.geoObject.options, ...this.result.options },
-      };
       this.$emit('close');
-      this.$emit('change', this.result);
+      this.$emit('change', {
+        type: 'Feature',
+        id: this.geoObject.id,
+        geometry: this.geoObject.geometry,
+        options: {
+          ...this.geoObject.options,
+          fillColor: this.currFillColor,
+          strokeColor: this.currStrokeColor,
+        },
+        properties: {
+          hintContent: this.result.properties.hintContent,
+        },
+        status: this.geoObject.status,
+      });
     },
   },
 }
 </script>
 
 <style module src="./x-modal.css"></style>
+
